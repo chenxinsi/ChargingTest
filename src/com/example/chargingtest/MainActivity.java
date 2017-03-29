@@ -305,11 +305,11 @@ public class MainActivity extends Activity {
     		}
     	}else if(isCharging == 1){
     		//写 1 放电  每次放电时 算一次循环
-			speakerPlay();
 			Log.d(TAG,"speakerPlay()");
     		if(!readFile(CHARGEPATH).equals("=> cmd_discharging = 1")){
-	    		writeFile(1);
-                Log.d(TAG,"writeFile(1)");
+				writeFile(1);
+				Log.d(TAG, "writeFile(1)");
+				speakerPlay();
 	    		charging_times ++ ;
 	    		nowChargingTimes.setText(""+charging_times);
 	    	}
