@@ -70,10 +70,12 @@ public class MainActivity extends Activity {
 	//private final String CHARGEPATH = "/sys/class/power_supply/battery/charging_enabled";
 	private final String CHARGEPATH = "/sys/devices/platform/mt-battery/kkx_accs/discharging_cmd";
 	private static final String CMD_CHARGING = "echo %1$d > /sys/devices/platform/mt-battery/kkx_accs/discharging_cmd";
+	private final static String ACTION ="android.hardware.usb.action.USB_STATE";
 	private PowerManager powerManager = null;
 	private PowerManager.WakeLock wakeLock = null;
 
 	private boolean isFirst ;
+	private boolean connected;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -213,7 +215,11 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			// TODO Auto-generated method stub
+			//判断是否链接usb
+            if(intent.getAction().equals(ACTION)){
+				connected = intent.getExtras().getBoolean("connected");
+			}
+
 			if (intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)) {
 				int level = intent.getIntExtra("level", 0);
 				int total = intent.getIntExtra("scale", 100);
@@ -223,14 +229,19 @@ public class MainActivity extends Activity {
 				//执行充电或者放电
 				writeOneorZero(isCharging(mCurBatteryLevel,min,max));
 				Log.d(TAG, "readFile(CHARGEPATH):" + readFile(CHARGEPATH));
-
+                Log.d(TAG, "connected: " + connected);
 				// => cmd_discharging = -1    => cmd_discharging = 1
 				if(!readFile(CHARGEPATH).equals("=> cmd_discharging = 1")){
-					charging_Status.setTextColor(Color.GREEN);
-					charging_Status.setText("状态：正在充电");
+					if(connected) {
+						charging_Status.setTextColor(Color.GREEN);
+						charging_Status.setText("状态：正在充电");
+					}else{
+						charging_Status.setTextColor(Color.RED);
+						charging_Status.setText("请连接电源");
+					}
 				}else{
-					charging_Status.setTextColor(Color.RED);
-					charging_Status.setText("状态：正在放电");
+						charging_Status.setTextColor(Color.RED);
+						charging_Status.setText("状态：正在放电");
 				}
 				//当正常循环测试到指定次数时 输出结果成功 
 				if(charging_times >= chaging_times_counts){
@@ -299,17 +310,17 @@ public class MainActivity extends Activity {
     		//写 0 充电
     		if(!(readFile(CHARGEPATH).equals("=> cmd_discharging = 0") || readFile(CHARGEPATH).equals("=> cmd_discharging = -1"))){
         		writeFile(0);
-                Log.d(TAG, "writeFile(0)");
-				stopSpeakerPlay();
-				Log.d(TAG, "stopSpeakerPlay()");
+                        Log.d(TAG, "writeFile(0)");
+		        stopSpeakerPlay();
+		        Log.d(TAG, "stopSpeakerPlay()");
     		}
     	}else if(isCharging == 1){
     		//写 1 放电  每次放电时 算一次循环
-			Log.d(TAG,"speakerPlay()");
     		if(!readFile(CHARGEPATH).equals("=> cmd_discharging = 1")){
-				writeFile(1);
-				Log.d(TAG, "writeFile(1)");
-				speakerPlay();
+		        writeFile(1);
+			Log.d(TAG, "writeFile(1)");
+			Log.d(TAG,"speakerPlay()");
+			speakerPlay();
 	    		charging_times ++ ;
 	    		nowChargingTimes.setText(""+charging_times);
 	    	}
