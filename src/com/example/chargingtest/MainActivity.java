@@ -297,7 +297,6 @@ public class MainActivity extends Activity {
     private void writeOneorZero(int isCharging){
     	if(isCharging == 0){
     		//写 0 充电
-			Log
     		if(!(readFile(CHARGEPATH).equals("=> cmd_discharging = 0") || readFile(CHARGEPATH).equals("=> cmd_discharging = -1"))){
         		writeFile(0);
                 Log.d(TAG, "writeFile(0)");
