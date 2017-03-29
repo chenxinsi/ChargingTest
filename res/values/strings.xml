@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Charging_Test</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="charging_range">"充电范围 :"</string>
+    <string name="charging_counts">"充电次数 :"</string>
+    <string name="charging_start">开始</string>
+    <string name="charging_stop">停止</string>
+    <string name="percent">%</string>
+    <string name="symbol">"  ~  "</string>
+    <string name="counts">次</string>
+    <string name="current_electricity">"当前电量 :"</string>
+    <string name="charging_times">"已充次数 :"</string>
+    <string name="test_result">"测试结果 :"</string>
+    <string name="data_filling">" 无"</string>
+    <string name="charging_status">"状态：等待测试"</string>
+    <string name="min_number">"15"</string>
+    <string name="max_number">"75"</string>
+</resources>
