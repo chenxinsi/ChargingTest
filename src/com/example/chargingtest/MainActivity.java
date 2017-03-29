@@ -223,7 +223,9 @@ public class MainActivity extends Activity {
 				//执行充电或者放电
 				writeOneorZero(isCharging(mCurBatteryLevel,min,max));
 				Log.d(TAG, "readFile(CHARGEPATH):" + readFile(CHARGEPATH));
-				if(!readFile(CHARGEPATH).equals("1")){
+
+				// => cmd_discharging = -1    => cmd_discharging = 1
+				if(!readFile(CHARGEPATH).equals("=> cmd_discharging = 1")){
 					charging_Status.setTextColor(Color.GREEN);
 					charging_Status.setText("状态：正在充电");
 				}else{
@@ -295,7 +297,8 @@ public class MainActivity extends Activity {
     private void writeOneorZero(int isCharging){
     	if(isCharging == 0){
     		//写 0 充电
-    		if(!(readFile(CHARGEPATH).equals("0") || readFile(CHARGEPATH).equals("-1"))){
+			Log
+    		if(!(readFile(CHARGEPATH).equals("=> cmd_discharging = 0") || readFile(CHARGEPATH).equals("=> cmd_discharging = -1"))){
         		writeFile(0);
                 Log.d(TAG, "writeFile(0)");
 				stopSpeakerPlay();
@@ -305,7 +308,7 @@ public class MainActivity extends Activity {
     		//写 1 放电  每次放电时 算一次循环
 			speakerPlay();
 			Log.d(TAG,"speakerPlay()");
-    		if(!readFile(CHARGEPATH).equals("1")){
+    		if(!readFile(CHARGEPATH).equals("=> cmd_discharging = 1")){
 	    		writeFile(1);
                 Log.d(TAG,"writeFile(1)");
 	    		charging_times ++ ;
