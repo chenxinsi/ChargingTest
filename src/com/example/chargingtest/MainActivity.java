@@ -75,7 +75,6 @@ public class MainActivity extends Activity {
 	private PowerManager.WakeLock wakeLock = null;
 
 	private boolean isFirst ;
-	private boolean connected;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -215,11 +214,9 @@ public class MainActivity extends Activity {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			//判断是否链接usb
-            if(intent.getAction().equals(ACTION)){
-				connected = intent.getExtras().getBoolean("connected");
-			}
-
+			//判断是否链接usb j==3  断开连接  j==4 没在充电 请连接充电线   
+			int j = intent.getIntExtra("status", 1);
+			Log.d(TAG,"j:" + " "+j);
 			if (intent.getAction().equals(Intent.ACTION_BATTERY_CHANGED)) {
 				int level = intent.getIntExtra("level", 0);
 				int total = intent.getIntExtra("scale", 100);
@@ -229,15 +226,14 @@ public class MainActivity extends Activity {
 				//执行充电或者放电
 				writeOneorZero(isCharging(mCurBatteryLevel,min,max));
 				Log.d(TAG, "readFile(CHARGEPATH):" + readFile(CHARGEPATH));
-                Log.d(TAG, "connected: " + connected);
 				// => cmd_discharging = -1    => cmd_discharging = 1
 				if(!readFile(CHARGEPATH).equals("=> cmd_discharging = 1")){
-					if(connected) {
-						charging_Status.setTextColor(Color.GREEN);
-						charging_Status.setText("状态：正在充电");
-					}else{
+					if(j == 3 || j == 4) {
 						charging_Status.setTextColor(Color.RED);
 						charging_Status.setText("请连接电源");
+					}else{
+						charging_Status.setTextColor(Color.GREEN);
+						charging_Status.setText("状态：正在充电");
 					}
 				}else{
 						charging_Status.setTextColor(Color.RED);
