@@ -67,7 +67,7 @@ public class MainActivity extends Activity {
 	
 	private final String TAG = "chargingTest";
 	private final String BATTERYTEMPPATH ="/sys/class/power_supply/bms/temp";
-	//private final String CHARGEPATH = "/sys/class/power_supply/battery/charging_enabled";
+	////private final String CHARGEPATH = "/sys/class/power_supply/battery/charging_enabled";
 	private final String CHARGEPATH = "/sys/devices/platform/mt-battery/kkx_accs/discharging_cmd";
 	private static final String CMD_CHARGING = "echo %1$d > /sys/devices/platform/mt-battery/kkx_accs/discharging_cmd";
 	private final static String ACTION ="android.hardware.usb.action.USB_STATE";
