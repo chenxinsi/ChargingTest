@@ -67,7 +67,7 @@ public class MainActivity extends Activity {
 	
 	private final String TAG = "chargingTest";
 	private final String BATTERYTEMPPATH ="/sys/class/power_supply/bms/temp";
-	////private final String CHARGEPATH = "/sys/class/power_supply/battery/charging_enabled";
+	//private final String CHARGEPATH = "/sys/class/power_supply/battery/charging_enabled";
 	private final String CHARGEPATH = "/sys/devices/platform/mt-battery/kkx_accs/discharging_cmd";
 	private static final String CMD_CHARGING = "echo %1$d > /sys/devices/platform/mt-battery/kkx_accs/discharging_cmd";
 	private final static String ACTION ="android.hardware.usb.action.USB_STATE";
@@ -75,6 +75,7 @@ public class MainActivity extends Activity {
 	private PowerManager.WakeLock wakeLock = null;
 
 	private boolean isFirst ;
+	private boolean mReceiverTag = false;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -82,12 +83,6 @@ public class MainActivity extends Activity {
 		Log.d(TAG, "start chargingTest");
 		mSharedPreferences = this.getSharedPreferences("charging", Activity.MODE_PRIVATE);
 		isFirst  = mSharedPreferences.getBoolean("first", true);
-		if(mSharedPreferences.getBoolean("first", true)){
-			SharedPreferences.Editor editor = mSharedPreferences.edit();
-			editor.putBoolean("first", false);
-			editor.commit();
-		}
-
         powerManager = (PowerManager) this.getSystemService(Service.POWER_SERVICE);
         wakeLock = this.powerManager.newWakeLock(PowerManager.FULL_WAKE_LOCK, "My Lock");
 		minPercent = (EditText) findViewById(R.id.the_min_percent);
@@ -114,11 +109,18 @@ public class MainActivity extends Activity {
 					max = Integer.parseInt(maxPercent.getText().toString().trim());
 					Log.d(TAG,"max" + max);
 					chaging_times_counts = Integer.parseInt(chargingTimesCounts.getText().toString().trim());
+					if(mSharedPreferences.getBoolean("first", true)){
+						SharedPreferences.Editor editor = mSharedPreferences.edit();
+						editor.putBoolean("first", false);
+						editor.commit();
+					}
 					//开始测试  注册广播
 					mBroadcastReceiver = new BatteryBroadcastReciver();
-					IntentFilter intentFilter = new IntentFilter(
+					/*IntentFilter intentFilter = new IntentFilter(
 							Intent.ACTION_BATTERY_CHANGED);
-					registerReceiver(mBroadcastReceiver, intentFilter);
+					Log.d(TAG,"registerReceiver");
+					registerReceiver(mBroadcastReceiver, intentFilter);*/
+					registerReceiver();
 					btnStart.setEnabled(false);
 					btnStop.setEnabled(true);
 					minPercent.setEnabled(false);
@@ -132,7 +134,7 @@ public class MainActivity extends Activity {
 		btnStop.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				unregisterReceiver(mBroadcastReceiver);
+				unregisterReceiver();
 				minPercent.setEnabled(true);
 				maxPercent.setEnabled(true);
 				chargingTimesCounts.setEnabled(true);
@@ -147,7 +149,27 @@ public class MainActivity extends Activity {
 		});
 	}
 
+	//注册广播
+	private void registerReceiver(){
+		if (!mReceiverTag) {
+			IntentFilter intentFilter = new IntentFilter(
+					Intent.ACTION_BATTERY_CHANGED);
+			mReceiverTag = true;
+			Log.d(TAG, "registerReceiver " + " mBroadcastReceiver:" + mBroadcastReceiver);
+			if(mBroadcastReceiver != null) {
+				registerReceiver(mBroadcastReceiver, intentFilter);
+			}
+		}
+	}
 
+    //注销广播
+	private void unregisterReceiver() {
+		if (mReceiverTag) {
+			mReceiverTag = false;
+			Log.d(TAG,"unregisterReceiver");
+			unregisterReceiver(mBroadcastReceiver);
+		}
+	}
 	private void isPass(boolean ispass){
 		Log.d(TAG,"isPass:" + ispass);
 		if(ispass){
@@ -198,14 +220,23 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
-                wakeLock.acquire();
+		Log.d(TAG,"onResume()" + "wakeLock.acquire()");
+		wakeLock.acquire();
 	}
+
+	protected void onStop(){
+		super.onStop();
+		Log.d(TAG,"onStop()" + "wakeLock.release()");
+		wakeLock.release();
+	}
+
 	@Override
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
 		super.onDestroy();
-                wakeLock.release();
-                stopSpeakerPlay();
+		Log.d(TAG,"onDestory()");
+		unregisterReceiver();
+		stopSpeakerPlay();
 		//无论充电还是放电 都打开充电接口
 		writeOneorZero(0);
 	}
@@ -222,7 +253,7 @@ public class MainActivity extends Activity {
 				int total = intent.getIntExtra("scale", 100);
 				mCurBatteryLevel = (level * 100) / total;
 				nowChargingPercent.setText(mCurBatteryLevel + "%");
-				Log.d(TAG,"mCurBatteryLevel="+mCurBatteryLevel);
+				Log.d(TAG, "mCurBatteryLevel="+mCurBatteryLevel);
 				//执行充电或者放电
 				writeOneorZero(isCharging(mCurBatteryLevel,min,max));
 				Log.d(TAG, "readFile(CHARGEPATH):" + readFile(CHARGEPATH));
@@ -243,8 +274,7 @@ public class MainActivity extends Activity {
 				if(charging_times >= chaging_times_counts){
 					btnStart.setEnabled(true);
 					btnStop.setEnabled(false);
-					charging_Status.setText("状态：测试结束");
-					unregisterReceiver(mBroadcastReceiver);
+					unregisterReceiver();
 					stopSpeakerPlay();
 					SharedPreferences.Editor editor1 = mSharedPreferences.edit();
 					editor1.putBoolean("test_result", true);
